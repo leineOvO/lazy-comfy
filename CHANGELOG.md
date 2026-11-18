@@ -2,7 +2,8 @@
 
 本项目遵循语义化版本；日期为发布日。
 
-## 1.1.9 — 2026-11-18
+## 1.1.8 — 2026-11-18
+
 
 ### 文档
 
@@ -32,11 +33,9 @@
 - 补一张对比表，说明相对「用完手动关 / 一直开着 / `--auto-launch` / cron + `/free` / 开机计划任务」
   这几种常见做法，lazy-comfy 分别省掉了什么代价。
 
-### 代码
+- 代码无功能改动；仅版本号字符串同步（`VERSION`、`package.json`、测试断言、README 帮助块）。
 
-- 无功能改动；仅版本号字符串同步（`VERSION`、`package.json`、测试断言、README 帮助块）。
-
-## 1.1.8 — 2026-11-18
+### 修复（1.1.7 → 1.1.8 的行为修复）
 
 ### 修复
 
@@ -59,11 +58,11 @@
 
 ### 测试
 
-- CI 矩阵：`ubuntu / windows` × Node 20 / 22 / 24（六种组合）。macOS 一度加进矩阵，但这台账号的 macOS 作业三次实测都拿不到 runner（`runner=` 为空，等 22~46 分钟后被判 cancelled），只会让整条 run 一直红着，故暂时移出：
+- CI 矩阵：`ubuntu / windows` × Node 20 / 22 / 24（六种组合）。macOS 一度加进矩阵，但这台账号的 macOS 作业从未被分配过 runner（`runner=` 为空、等 11~25 分钟后被判 cancelled；同一 commit 的 Ubuntu / Windows 六个 job 秒级分配且全绿）。为排除「是不是项目自己的问题」，另加了一个只跑 `echo` 的探针 workflow：同样 `labels=["macos-latest"]`、141 秒后仍 `runner=` 为空，而同分钟的 Ubuntu / Windows 作业已跑完。结论是账号侧的 macOS runner 配额/排队问题，故暂时移出矩阵：
   `looksLikeComfy()` 只在 Linux 比 cwd，历史上就有一条用例「Windows 过、Linux 挂」，
   不加 macOS 就没有任何证据说 macOS 也能跑。
 - `engines.node` 从 `>=18.17.0` 提到 `>=20.0.0`：18 已 EOL 且 CI 不跑，写着就是没验过的承诺。
-- 新增三条（共 30 个用例，本地 Windows + Node 22 实测 30/30；三平台 × Node 20/22/24 由 CI 矩阵覆盖）：
+- 新增三条（共 30 个用例，本地 Windows + Node 22 实测 30/30；Ubuntu / Windows × Node 20/22/24 由 CI 矩阵覆盖）：
   - `托管后端队列忙时，--stop 到点也不许杀` —— 之前的队列用例用的是外部后端，
     `stopBackend` 本来就不杀外部后端，断言偏弱；这条让代理真的 spawn 一个后端。
   - `spawn 成功就落 PID 文件，状态是 starting` —— 覆盖「冷启动被打断也不丢托管」的写入时机。
@@ -95,12 +94,6 @@
   新代理读到「进程还在但还没响应」的记录时，按「启动中的托管后端」接管，就绪后照常按空闲策略结束。
 
 ### 修复
-
-- Windows 上 `looksLikeComfy()` 查进程命令行用 `powershell.exe + Get-CimInstance`，
-  超时从 5 秒提到 15 秒：CI 的 2 核 runner 上 powershell 冷启动 + CIM 首次加载就要 2~4 秒，
-  并发跑满时更久；一旦超时 `capture()` 返回空字符串，`looksLikeComfy()` 就会把自家的后端
-  误判成「外部后端」，于是冷启动接管失效、`--stop` 不再生效。本机快所以一直没暴露，
-  `windows-latest × Node 20/22/24` 三个 job 同时红才把它顶出来。
 
 ### 测试
 
@@ -140,12 +133,6 @@
 
 ### 修复
 
-- Windows 上 `looksLikeComfy()` 查进程命令行用 `powershell.exe + Get-CimInstance`，
-  超时从 5 秒提到 15 秒：CI 的 2 核 runner 上 powershell 冷启动 + CIM 首次加载就要 2~4 秒，
-  并发跑满时更久；一旦超时 `capture()` 返回空字符串，`looksLikeComfy()` 就会把自家的后端
-  误判成「外部后端」，于是冷启动接管失效、`--stop` 不再生效。本机快所以一直没暴露，
-  `windows-latest × Node 20/22/24` 三个 job 同时红才把它顶出来。
-
 ### 测试
 
 - CI 矩阵从 Node 20 / 22 扩到 **20 / 22 / 24**（`ubuntu-latest` + `windows-latest`），
@@ -178,12 +165,6 @@
 
 ### 修复
 
-- Windows 上 `looksLikeComfy()` 查进程命令行用 `powershell.exe + Get-CimInstance`，
-  超时从 5 秒提到 15 秒：CI 的 2 核 runner 上 powershell 冷启动 + CIM 首次加载就要 2~4 秒，
-  并发跑满时更久；一旦超时 `capture()` 返回空字符串，`looksLikeComfy()` 就会把自家的后端
-  误判成「外部后端」，于是冷启动接管失效、`--stop` 不再生效。本机快所以一直没暴露，
-  `windows-latest × Node 20/22/24` 三个 job 同时红才把它顶出来。
-
 ### 测试
 
 - 22 个用例：`test/lazy-comfy.test.mjs`（配置解析）、`test/proxy-loopback.test.mjs`（转发回归 8 条）、
@@ -207,12 +188,6 @@
 - 启动日志说明兜底是否启用（`--request-timeout 0` 时会明确提示风险）。
 
 ### 修复
-
-- Windows 上 `looksLikeComfy()` 查进程命令行用 `powershell.exe + Get-CimInstance`，
-  超时从 5 秒提到 15 秒：CI 的 2 核 runner 上 powershell 冷启动 + CIM 首次加载就要 2~4 秒，
-  并发跑满时更久；一旦超时 `capture()` 返回空字符串，`looksLikeComfy()` 就会把自家的后端
-  误判成「外部后端」，于是冷启动接管失效、`--stop` 不再生效。本机快所以一直没暴露，
-  `windows-latest × Node 20/22/24` 三个 job 同时红才把它顶出来。
 
 ### 测试
 
@@ -240,12 +215,6 @@
 - `start.bat` 不再硬编码 `D:\ComfyUI`：留空就让代理自动查找，可用环境变量 `COMFY_ROOT` 覆盖。
 
 ### 修复
-
-- Windows 上 `looksLikeComfy()` 查进程命令行用 `powershell.exe + Get-CimInstance`，
-  超时从 5 秒提到 15 秒：CI 的 2 核 runner 上 powershell 冷启动 + CIM 首次加载就要 2~4 秒，
-  并发跑满时更久；一旦超时 `capture()` 返回空字符串，`looksLikeComfy()` 就会把自家的后端
-  误判成「外部后端」，于是冷启动接管失效、`--stop` 不再生效。本机快所以一直没暴露，
-  `windows-latest × Node 20/22/24` 三个 job 同时红才把它顶出来。
 
 ### 测试
 
@@ -297,12 +266,6 @@
 
 ### 修复
 
-- Windows 上 `looksLikeComfy()` 查进程命令行用 `powershell.exe + Get-CimInstance`，
-  超时从 5 秒提到 15 秒：CI 的 2 核 runner 上 powershell 冷启动 + CIM 首次加载就要 2~4 秒，
-  并发跑满时更久；一旦超时 `capture()` 返回空字符串，`looksLikeComfy()` 就会把自家的后端
-  误判成「外部后端」，于是冷启动接管失效、`--stop` 不再生效。本机快所以一直没暴露，
-  `windows-latest × Node 20/22/24` 三个 job 同时红才把它顶出来。
-
 ### 测试
 
 - 新增 `test/proxy-loopback.test.mjs`：纯 Node 起假后端，**Windows 上也会真跑**
@@ -340,12 +303,6 @@
 - `--upstream-timeout` 超时后不再重复触发 `error` 分支的 `502` 响应（已发头时不重复写响应）。
 
 ### 修复
-
-- Windows 上 `looksLikeComfy()` 查进程命令行用 `powershell.exe + Get-CimInstance`，
-  超时从 5 秒提到 15 秒：CI 的 2 核 runner 上 powershell 冷启动 + CIM 首次加载就要 2~4 秒，
-  并发跑满时更久；一旦超时 `capture()` 返回空字符串，`looksLikeComfy()` 就会把自家的后端
-  误判成「外部后端」，于是冷启动接管失效、`--stop` 不再生效。本机快所以一直没暴露，
-  `windows-latest × Node 20/22/24` 三个 job 同时红才把它顶出来。
 
 ### 测试
 

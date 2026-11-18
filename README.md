@@ -86,7 +86,7 @@ node lazy-comfy.mjs --root ~/ComfyUI --stop-on-exit
 以下为 `node lazy-comfy.mjs --help` 的完整输出：
 
 ```text
-lazy-comfy 1.1.9 — ComfyUI 按需启动 + 分级休眠代理
+lazy-comfy 1.1.8 — ComfyUI 按需启动 + 分级休眠代理
 
 用法:
   node lazy-comfy.mjs [选项]
@@ -299,7 +299,9 @@ ComfyUI 冷启动要 40–60 秒，但很多客户端对 `GET /system_stats` 只
   以及每 300ms 一次的 WebSocket 重连，都不会把刚睡下的后端吵醒。
 - **健康检查占位**：冷启动期间 `GET /system_stats` 先返回 200 占位数据，
   避免只等 5 秒的客户端直接报错；真正干活的请求会排队等后端就绪。
-- **跨平台**：Windows（含 ComfyUI 便携包 `python_embeded`）、Linux、macOS。
+- **跨平台**：Windows（含 ComfyUI 便携包 `python_embeded`）与 Linux 有 CI 实测；
+  macOS 代码上兼容（纯 Node、无 shell 依赖），但这台账号拿不到 macOS runner，
+  属于**未验证平台**，详见文末「开发」一节。
 - **零依赖**：只需要 Node.js，不用 `npm install`。
 - **安全默认**：只监听 `127.0.0.1`，不对外网开放。
 - **可运维**：PID 文件、日志轮转、`--stop-on-exit`、可配置超时和检查间隔。
@@ -608,7 +610,19 @@ npm run check     # 语法检查
 当前 30 个用例：本地（Windows 11 + Node 22.19）实测 30/30；
 CI 矩阵覆盖 **Ubuntu / Windows × Node 20 / 22 / 24**（六种组合）—— 本地单平台跑绿不等于多平台都绿，发版前以 CI 绿灯为准。
 
-macOS 暂未纳入 CI：这台账号的 macOS 作业从来没被分配过 runner（三次实测都是等 22~46 分钟后被判 cancelled）。用例本身是跨平台的，等 macOS runner 可用时把 macos-latest 加回矩阵即可。
+macOS 暂未纳入 CI，**这不是「没测」，是拿不到机器**：项目本身跨平台（用例不依赖 shell 垫片、
+不依赖 `.py` 扩展名、进程表查询在 macOS 上走 `ps`），但在这台账号上，macOS 作业从来没有被分配过 runner。
+为此专门做了两次对照实验：
+
+1. 矩阵里带 `macos-latest`：作业创建后 `runner=` 一直为空，等 11~25 分钟后被判 `cancelled`；
+   同一 commit 的 Ubuntu / Windows 六个 job 是**秒级分配、全部通过**。
+2. 单独一个只跑 `echo` 的探针 workflow（`macos-probe.yml`，不碰项目代码）：同样 `labels=["macos-latest"]`、
+   `runner=` 为空，141 秒后仍未分配，而同一分钟的 Ubuntu / Windows 作业已经跑完。
+
+两次都指向同一结论：标签写对了、用例与代码无关，是账号侧的 macOS runner 配额/排队问题。
+等 runner 可用时，把 `macos-latest` 加回 `os` 列表即可（`os: [ubuntu-latest, windows-latest, macos-latest]`），
+用例本身不需要改。在那之前，请把 macOS 当成**未验证平台**看待：`--help`、核心逻辑与依赖都是
+纯 Node（零第三方依赖），出问题的概率低，但没有 CI 证据，所以文档里不写「三平台通过」。
 测试把后端入口写成 `main.cjs`，用 `LAZY_ENTRY` 指过去（默认入口仍是 `main.py`）——
 这样就不依赖 Node 对 `.py` 这种未知扩展名的处理方式（Node 23+ 会直接报
 `ERR_UNKNOWN_FILE_EXTENSION`，Node 22 却能当 CommonJS 跑）。

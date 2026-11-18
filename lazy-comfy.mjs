@@ -28,7 +28,7 @@ import { spawn } from 'node:child_process';
 import { parseArgs } from 'node:util';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
-export const VERSION = '1.1.9';
+export const VERSION = '1.1.8';
 
 // 版本号的权威来源是 package.json；单文件部署时可能没有它，所以这里只做运行期校验。
 // （不要把 VERSION 改成从 package.json 读取：很多人是单独拷 lazy-comfy.mjs 用。）
