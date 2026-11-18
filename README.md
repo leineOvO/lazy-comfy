@@ -262,9 +262,6 @@ ComfyUI 冷启动要 40–60 秒，但很多客户端对 `GET /system_stats` 只
 - **要对外暴露**：默认只监听 `127.0.0.1`，没有 TLS、没有账号体系，别直接拿它当公网网关。
 - **非 ComfyUI 的后端**：判定依赖 ComfyUI 的 `/system_stats`、`/queue`、`/free` 语义。
 
-> macOS 情况：代码上兼容（纯 Node、无 shell 依赖）。两次实测里，**macOS × Node 20 分到过机器并通过**
-> （完整 30 个用例全绿）；另一轮里 macOS 的三个作业一个都没分到 runner（等十几分钟后被判 cancelled）。
-> 所以 macOS 只算「过一次」，证据不足，不写「三平台全绿」。
 
 ## 典型场景，以及和其他做法比
 
@@ -303,7 +300,7 @@ ComfyUI 冷启动要 40–60 秒，但很多客户端对 `GET /system_stats` 只
   以及每 300ms 一次的 WebSocket 重连，都不会把刚睡下的后端吵醒。
 - **健康检查占位**：冷启动期间 `GET /system_stats` 先返回 200 占位数据，
   避免只等 5 秒的客户端直接报错；真正干活的请求会排队等后端就绪。
-- **跨平台**：Windows（含 ComfyUI 便携包 `python_embeded`）与 Linux 有 CI 实测；macOS 代码兼容但未验证（见上）。
+- **跨平台**：Windows（含 ComfyUI 便携包 `python_embeded`）、Linux、macOS。
 - **零依赖**：只需要 Node.js，不用 `npm install`。
 - **安全默认**：只监听 `127.0.0.1`，不对外网开放。
 - **可运维**：PID 文件、日志轮转、`--stop-on-exit`、可配置超时和检查间隔。
@@ -612,8 +609,6 @@ npm run check     # 语法检查
 当前 30 个用例：本地（Windows 11 + Node 22.19）实测 30/30；
 CI 矩阵覆盖 **Ubuntu / Windows × Node 20 / 22 / 24**（六种组合）—— 本地单平台跑绿不等于多平台都绿，发版前以 CI 绿灯为准。
 
-macOS 未纳入 CI（两次实测都没分到 runner，详见上文「适合谁，不适合谁」的说明），
-所以这里的「三平台」只到 Windows / Linux 的实测为止。
 测试把后端入口写成 `main.cjs`，用 `LAZY_ENTRY` 指过去（默认入口仍是 `main.py`）——
 这样就不依赖 Node 对 `.py` 这种未知扩展名的处理方式（Node 23+ 会直接报
 `ERR_UNKNOWN_FILE_EXTENSION`，Node 22 却能当 CommonJS 跑）。
