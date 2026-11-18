@@ -32,6 +32,8 @@
   Windows 便携包与中文路径实测可用、零依赖单文件、显存回落可量化（7158 MiB → 约 800 MiB）。
 - 补一张对比表，说明相对「用完手动关 / 一直开着 / `--auto-launch` / cron + `/free` / 开机计划任务」
   这几种常见做法，lazy-comfy 分别省掉了什么代价。
+- 「已知限制」补一条 macOS 说明：只在 Node 20 上成功验证过一次；macOS × Node 22/24 的 CI 作业
+  从未被分配到 runner，因此那两组没有验证过、可能有异样。CI 实际覆盖 Ubuntu / Windows × Node 20/22/24。
 
 - 代码无功能改动；仅版本号字符串同步（`VERSION`、`package.json`、测试断言、README 帮助块）。
 
