@@ -1,0 +1,13 @@
+node_modules/
+*.log
+*.log.1
+*.pid
+.lazy-comfy/
+.DS_Store
+
+lazy-comfy-complete.md
+
+lazy-comfy-visual.html
+
+# 本机部署记录（含私有路径 / pid），不进仓库
+DEPLOY-WINDOWS.md

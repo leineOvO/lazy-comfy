@@ -1,0 +1,18 @@
+# ⚠️ 这是 systemd --user 用户单元，%h 会展开为用户目录。
+# 如果放到 /etc/systemd/system 作为系统服务，%h 不会展开，启动会失败！
+# 系统服务请务必写绝对路径，并补上 User=你的用户名 / Group=你的用户组。
+[Unit]
+Description=lazy-comfy (on-demand ComfyUI proxy)
+After=network.target
+
+[Service]
+Type=simple
+# 按实际位置修改仓库路径和 ComfyUI 路径
+ExecStart=/usr/bin/node %h/lazy-comfy/lazy-comfy.mjs --root %h/ComfyUI
+Restart=on-failure
+RestartSec=5
+# 退出时同时结束后端；想保留后端（下次更快）就删掉这一行
+Environment=LAZY_STOP_ON_EXIT=1
+
+[Install]
+WantedBy=default.target

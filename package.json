@@ -1,0 +1,44 @@
+{
+  "name": "lazy-comfy",
+  "version": "1.1.8",
+  "description": "ComfyUI 智能分级休眠代理：按需启动、空闲卸载模型、自动结束后端",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/leineOvO/lazy-comfy.git"
+  },
+  "homepage": "https://github.com/leineOvO/lazy-comfy#readme",
+  "bugs": {
+    "url": "https://github.com/leineOvO/lazy-comfy/issues"
+  },
+  "type": "module",
+  "main": "lazy-comfy.mjs",
+  "bin": {
+    "lazy-comfy": "./lazy-comfy.mjs"
+  },
+  "files": [
+    "lazy-comfy.mjs",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "start": "node lazy-comfy.mjs",
+    "test": "node --test test/lazy-comfy.test.mjs test/proxy-loopback.test.mjs test/proxy.test.mjs",
+    "test:unit": "node --test test/lazy-comfy.test.mjs",
+    "test:integ": "node --test test/proxy-loopback.test.mjs test/proxy.test.mjs",
+    "check": "node --check lazy-comfy.mjs"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "keywords": [
+    "comfyui",
+    "proxy",
+    "lazy",
+    "vram",
+    "stable-diffusion",
+    "idle"
+  ],
+  "author": "大肥鱼",
+  "license": "MIT"
+}
