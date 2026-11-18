@@ -406,26 +406,24 @@ lazy-comfy 的出发点就是把这两件事拆开：**「网页在呼吸」不�
 
 命令行参数优先于环境变量。
 
-| 命令行 | 默认值 | 说明 |
-| --- | --- | --- |
-| `-p, --port` | `8189` | 代理监听端口（env `LAZY_PORT`） |
-| `-b, --backend` | `8188` | ComfyUI 后端端口（env `COMFY_PORT`） |
-| `-r, --root` | 自动查找 | ComfyUI 根目录（含 `main.py`，env `COMFY_ROOT`） |
-| `--python` | 自动查找 | Python 解释器（env `COMFY_PYTHON` / `LAZY_PYTHON`） |
-| `--idle` | `10` | 空闲多少分钟卸载模型，`0` = 关闭（env `LAZY_IDLE_MIN`） |
-| `--stop` | `30` | 空闲多少分钟结束后端，`0` = 关闭（env `LAZY_STOP_MIN`） |
-| `--log` | `<state-dir>/lazy.log` | 日志文件（env `LAZY_LOG`） |
-| `--state-dir` | `~/.lazy-comfy` | PID / 日志目录（env `LAZY_STATE_DIR`） |
-| `--start-timeout` | `180000` | 冷启动超时（毫秒），超时会杀掉重试（env `LAZY_START_TIMEOUT_MS`） |
-| `--wait-timeout` | 启动超时 + 10s | 单个请求等待后端就绪的上限（env `LAZY_WAIT_TIMEOUT_MS`） |
-| `--check-interval` | `30000` | 空闲检查间隔（毫秒，env `LAZY_CHECK_MS`） |
-| `--upstream-timeout` | `600000` | 单条转发的静默超时，`0` = 关闭（env `LAZY_UPSTREAM_TIMEOUT_MS`） |
-| `--request-timeout` | `7200000` | 单请求无数据兜底，只在 `--upstream-timeout 0` 时生效（env `LAZY_REQUEST_TIMEOUT_MS`） |
-| `--hibernate-retry` | `3` | `/free` 连续失败多少次后放弃休眠（env `LAZY_HIBERNATE_RETRY`） |
-| `--probe-fail-limit` | `0` | 探活连续失败多少次后强制重启，`0` = 关闭（env `LAZY_PROBE_FAIL_LIMIT`） |
-| `--passive-extra` | 空 | 追加被动路由正则，CLI 可重复，env 用逗号分隔（env `LAZY_PASSIVE_EXTRA`） |
-| `--stop-on-exit` | 关闭 | 代理退出时同时结束后端（env `LAZY_STOP_ON_EXIT=1`） |
-| `--debug` | 关闭 | 打印每个请求的主动/被动分类（env `LAZY_DEBUG=1`） |
+- **`-p, --port`**（默认 `8189`）——代理监听端口（env `LAZY_PORT`）
+- **`-b, --backend`**（默认 `8188`）——ComfyUI 后端端口（env `COMFY_PORT`）
+- **`-r, --root`**（默认 自动查找）——ComfyUI 根目录（含 `main.py`，env `COMFY_ROOT`）
+- **`--python`**（默认 自动查找）——Python 解释器（env `COMFY_PYTHON` / `LAZY_PYTHON`）
+- **`--idle`**（默认 `10`）——空闲多少分钟卸载模型，`0` = 关闭（env `LAZY_IDLE_MIN`）
+- **`--stop`**（默认 `30`）——空闲多少分钟结束后端，`0` = 关闭（env `LAZY_STOP_MIN`）
+- **`--log`**（默认 `<state-dir>/lazy.log`）——日志文件（env `LAZY_LOG`）
+- **`--state-dir`**（默认 `~/.lazy-comfy`）——PID / 日志目录（env `LAZY_STATE_DIR`）
+- **`--start-timeout`**（默认 `180000`）——冷启动超时（毫秒），超时会杀掉重试（env `LAZY_START_TIMEOUT_MS`）
+- **`--wait-timeout`**（默认 启动超时 + 10s）——单个请求等待后端就绪的上限（env `LAZY_WAIT_TIMEOUT_MS`）
+- **`--check-interval`**（默认 `30000`）——空闲检查间隔（毫秒，env `LAZY_CHECK_MS`）
+- **`--upstream-timeout`**（默认 `600000`）——单条转发的静默超时，`0` = 关闭（env `LAZY_UPSTREAM_TIMEOUT_MS`）
+- **`--request-timeout`**（默认 `7200000`）——单请求无数据兜底，只在 `--upstream-timeout 0` 时生效（env `LAZY_REQUEST_TIMEOUT_MS`）
+- **`--hibernate-retry`**（默认 `3`）——`/free` 连续失败多少次后放弃休眠（env `LAZY_HIBERNATE_RETRY`）
+- **`--probe-fail-limit`**（默认 `0`）——探活连续失败多少次后强制重启，`0` = 关闭（env `LAZY_PROBE_FAIL_LIMIT`）
+- **`--passive-extra`**（默认 空）——追加被动路由正则，CLI 可重复，env 用逗号分隔（env `LAZY_PASSIVE_EXTRA`）
+- **`--stop-on-exit`**（默认 关闭）——代理退出时同时结束后端（env `LAZY_STOP_ON_EXIT=1`）
+- **`--debug`**（默认 关闭）——打印每个请求的主动/被动分类（env `LAZY_DEBUG=1`）
 
 `--idle` 和 `--stop` 支持小数，方便调试（例如 `0.05` 表示 3 秒）。
 
