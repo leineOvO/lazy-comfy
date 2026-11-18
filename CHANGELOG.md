@@ -2,7 +2,7 @@
 
 本项目遵循语义化版本；日期为发布日。
 
-## 1.1.8 — 2026-11-18
+## 1.1.9 — 2026-11-18（合并 1.1.8 的全部修复）
 
 
 ### 文档
@@ -58,7 +58,7 @@
 
 ### 测试
 
-- CI 矩阵：`ubuntu / windows` × Node 20 / 22 / 24（六种组合）。macOS 一度加进矩阵，但这台账号的 macOS 作业从未被分配过 runner（`runner=` 为空、等 11~25 分钟后被判 cancelled；同一 commit 的 Ubuntu / Windows 六个 job 秒级分配且全绿）。为排除「是不是项目自己的问题」，另加了一个只跑 `echo` 的探针 workflow：同样 `labels=["macos-latest"]`、141 秒后仍 `runner=` 为空，而同分钟的 Ubuntu / Windows 作业已跑完。结论是账号侧的 macOS runner 配额/排队问题，故暂时移出矩阵：
+- CI 矩阵：`ubuntu / windows` × Node 20 / 22 / 24（六种组合）。macOS 一度加进矩阵，但这台账号的 macOS 作业从未被分配过 runner（`runner=` 为空、等 11~25 分钟后被判 cancelled；同一 commit 的 Ubuntu / Windows 六个 job 秒级分配且全绿）。为排除「是不是项目自己的问题」，另加了一个只跑 `echo` 的探针 workflow：同样 `labels=["macos-latest"]`、141 秒后仍 `runner=` 为空，而同分钟的 Ubuntu / Windows 作业已跑完。结论是账号侧的 macOS runner 配额/排队问题。不过**macOS × Node 20 分到过一次机器并通过**（30 个用例全绿），所以 macOS 不是「跑不起来」，只是不稳定地拿不到机器；节点 22/24 至今没被分配过。故暂时移出矩阵：
   `looksLikeComfy()` 只在 Linux 比 cwd，历史上就有一条用例「Windows 过、Linux 挂」，
   不加 macOS 就没有任何证据说 macOS 也能跑。
 - `engines.node` 从 `>=18.17.0` 提到 `>=20.0.0`：18 已 EOL 且 CI 不跑，写着就是没验过的承诺。

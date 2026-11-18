@@ -1,6 +1,6 @@
 {
   "name": "lazy-comfy",
-  "version": "1.1.8",
+  "version": "1.1.9",
   "description": "ComfyUI 智能分级休眠代理：按需启动、空闲卸载模型、自动结束后端",
   "repository": {
     "type": "git",

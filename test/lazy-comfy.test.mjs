@@ -110,7 +110,7 @@ test('--request-timeout 解析与环境变量', () => {
 test('--help / --version 直接返回', () => {
   assert.deepEqual(parseConfig(['--help'], {}), { help: true });
   assert.deepEqual(parseConfig(['-v'], {}), { version: true });
-  assert.equal(VERSION, '1.1.8');
+  assert.equal(VERSION, '1.1.9');
 });
 
 test('normalizePath 去掉 /api 前缀', () => {

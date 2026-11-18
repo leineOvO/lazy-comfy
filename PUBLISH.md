@@ -1,4 +1,4 @@
-# 发布清单（1.1.8）
+# 发布清单（1.1.9）
 
 按顺序做，每一步都可以单独回退。带 ⚠️ 的步骤涉及外部可见状态，做之前需要你点头。
 
@@ -32,8 +32,8 @@
 cd <解压后的项目目录>
 git init
 git add -A
-git commit -m "lazy-comfy 1.1.8：按需启动 + 分级休眠代理"
-git tag v1.1.8
+git commit -m "lazy-comfy 1.1.9：按需启动 + 分级休眠代理"
+git tag v1.1.9
 ```
 
 ⚠️ `git init` / `commit` / `tag` 属于 git 操作，需要你明确授权后再执行。
@@ -47,7 +47,7 @@ git tag v1.1.8
 # 先在 GitHub / Gitee 网页上建空仓库（不要勾 README）
 git remote add origin https://github.com/<你的用户名>/lazy-comfy.git
 git push -u origin master
-git push origin v1.1.8
+git push origin v1.1.9
 ```
 
 ⚠️ 推送是外部可见操作，需要单独授权。
@@ -57,9 +57,9 @@ git push origin v1.1.8
 
 ## 4. 发 Release
 
-- 标题：`v1.1.8`
-- 正文：直接取 `CHANGELOG.md` 里 `## 1.1.8` 那一节（含开头那句「1.1.4 不要用」）
-- 附件：`lazy-comfy-1.1.8.zip`（源码包）、`lazy-comfy.mjs`（单文件版，给只想换一个文件的人）
+- 标题：`v1.1.9`
+- 正文：直接取 `CHANGELOG.md` 里 `## 1.1.9` 那一节（含开头那句「1.1.4 不要用」）
+- 附件：`lazy-comfy-1.1.9.zip`（源码包）、`lazy-comfy.mjs`（单文件版，给只想换一个文件的人）
 
 ## 5. 可选：发 npm
 
