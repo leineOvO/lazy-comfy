@@ -4,14 +4,25 @@ on:
   push:
   pull_request:
 
+# 同一分支/标签上又推了一次，就取消还没开始的旧运行：
+# 反复 amend + force push 时，否则会堆出几十条 queued 运行、几百个 job 排队。
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test:
     strategy:
       fail-fast: false
       matrix:
-        # macOS 单独列出来是必须的：看起来「POSIX 兼容」的地方，实际差异常常出现在
-        # 进程表 / cwd / 信号投递上（历史上就有一条用例只在 Linux 挂）。
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        # 只跑 Ubuntu 和 Windows。
+        #
+        # 原本还有 macos-latest，但这台账号上的 macOS 作业从来没被分配过 runner：
+        # 实测三次（含删库重建后的干净仓库）都是 `runner=` 为空、等 22~46 分钟后
+        # 被判 cancelled，整条 run 因此永远显示红叉。这属于账号级的 macOS 配额/排队问题，
+        # 不是代码问题——同一 commit 的 Windows 与 Ubuntu 六种组合全绿。
+        # 等 macOS runner 可用时，把 macos-latest 加回 os 列表即可（用例本身跨平台）。
+        os: [ubuntu-latest, windows-latest]
         node: [20, 22, 24]
     runs-on: ${{ matrix.os }}
     steps:

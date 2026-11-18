@@ -28,7 +28,7 @@ import { spawn } from 'node:child_process';
 import { parseArgs } from 'node:util';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
-export const VERSION = '1.1.8';
+export const VERSION = '1.1.9';
 
 // 版本号的权威来源是 package.json；单文件部署时可能没有它，所以这里只做运行期校验。
 // （不要把 VERSION 改成从 package.json 读取：很多人是单独拷 lazy-comfy.mjs 用。）
@@ -688,7 +688,9 @@ async function commandLine(pid) {
   }
   if (IS_WIN) {
     const script = `(Get-CimInstance Win32_Process -Filter "ProcessId=${Number(pid)}").CommandLine`;
-    return capture('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', script]);
+    // 15 秒：CI 的 2 核 runner 上 powershell 冷启动 + CIM 首次加载 2~4 秒是常态，
+    // 并发跑满时更久；5 秒会直接超时返回空字符串，让 looksLikeComfy 误判成「不是我的后端」。
+    return capture('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', script], 15_000);
   }
   return capture('ps', ['-p', String(pid), '-o', 'command=']);
 }

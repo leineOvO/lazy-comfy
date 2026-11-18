@@ -525,27 +525,13 @@ test('冷启动中代理退出后，重启能接管启动中的后端并继续�
   const backendPort = await freePort();
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'lazy-adopt-'));
   const mainCjs = path.join(dir, 'main.cjs');
-  // 假 ComfyUI 后端：1.2 秒后才开始监听，模拟「启动慢」
+  // 假 ComfyUI 后端：**永远不监听**，模拟「启动到一半、还没开始响应」。
+  // 不能用「晚 1.2 秒再监听」的写法：Windows 上 looksLikeComfy 要起 powershell 查命令行，
+  // CI 的 2 核 runner 冷启动就是 1~4 秒，等查完后端早就监听好了，
+  // 代理会走进「已在运行 → 复用」的另一条分支，这条用例就会假红。
   fs.writeFileSync(mainCjs, `
-const http = require('http');
-const port = Number(process.argv[process.argv.indexOf('--port') + 1]);
-setTimeout(() => {
-  http.createServer((req, res) => {
-    if (req.url === '/system_stats') {
-      res.writeHead(200, { 'content-type': 'application/json' });
-      res.end('{"system":{"comfyui_version":"fake"},"devices":[]}');
-      return;
-    }
-    if (req.url === '/queue') {
-      res.writeHead(200, { 'content-type': 'application/json' });
-      res.end('{"queue_running":[],"queue_pending":[]}');
-      return;
-    }
-    req.resume();
-    res.writeHead(200, { 'content-type': 'application/json' });
-    res.end('{"ok":true}');
-  }).listen(port, '127.0.0.1');
-}, 1200);
+// 永不监听；只能被 taskkill 结束
+setInterval(() => {}, 1000);
 `, 'utf8');
   fs.writeFileSync(path.join(dir, 'main.py'), '# placeholder; entry is main.cjs\n');
 
@@ -593,9 +579,16 @@ setTimeout(() => {
   }, 15_000, 200);
   assert.equal(adopted, true, '新代理没有接管启动中的后端，会把它当外部后端');
 
-  // 接管后必须仍然「归我管」：--stop 到点要把这个后端结束掉
-  const killed = await waitFor(async () => !(await canConnect(backendPort, 300)), 20_000, 300);
-  assert.equal(killed, true, '接管后的后端没有按 --stop 结束，说明托管权丢了');
+  // 接管后必须仍然「归我管」：--stop 到点要把这个后端结束掉（看进程真的没了，不看端口）
+  const exited = await new Promise((resolve) => {
+    if (backend.exitCode !== null || backend.signalCode !== null) return resolve(true);
+    const timer = setTimeout(() => resolve(false), 20_000);
+    backend.once('exit', () => {
+      clearTimeout(timer);
+      resolve(true);
+    });
+  });
+  assert.equal(exited, true, '接管后的后端没有按 --stop 结束，说明托管权丢了');
 });
 
 // 回归：1.1.7 的 /queue 守卫曾经把「未知」一律当成「先跳过」，结果后端一死，
