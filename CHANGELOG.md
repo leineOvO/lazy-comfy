@@ -35,6 +35,7 @@
 - 「已知限制」补一条 macOS 说明：只在 Node 20 上成功验证过一次；macOS × Node 22/24 的 CI 作业
   从未被分配到 runner，因此那两组没有验证过、可能有异样。CI 实际覆盖 Ubuntu / Windows × Node 20/22/24。
 
+- 发布包（zip / all-in-one）补齐 `.gitattributes`：现在与仓库一致都是 **14 个文件**，避免「仓库 14、发布包 13」的疑问；`*.bat text eol=crlf` 也能防止 `start.bat` 被改成 LF。
 - 代码无功能改动；仅版本号字符串同步（`VERSION`、`package.json`、测试断言、README 帮助块）。
 
 ### 修复

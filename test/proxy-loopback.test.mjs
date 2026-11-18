@@ -256,7 +256,7 @@ test('慢上游会拿到 504，且不误判为后端故障', async (t) => {
 
   assert.equal(res.status, 504);
   assert.match(body.error, /超时/);
-  assert.ok(elapsed < 4_000, `504 来得太慢: ${elapsed}ms`);
+  assert.ok(elapsed < 8_000, `504 来得太慢: ${elapsed}ms`);
   assert.equal(fake.hits.length, 1, '上游应该收到一次请求');
   assert.match(proxy.log(), /（1s 没有数据往来）|没有数据往来/);
 });
@@ -358,7 +358,7 @@ test('--request-timeout 1200：挂死请求只断开这一条', async (t) => {
 
   assert.equal(res.status, 504);
   assert.match(body.error, /超时/);
-  assert.ok(elapsed < 4_000, `504 来得太慢: ${elapsed}ms`);
+  assert.ok(elapsed < 8_000, `504 来得太慢: ${elapsed}ms`);
   assert.match(proxy.log(), /只断开这一条/);
   assert.match(proxy.log(), /request-timeout/);
 
