@@ -35,8 +35,6 @@
 
 - 代码无功能改动；仅版本号字符串同步（`VERSION`、`package.json`、测试断言、README 帮助块）。
 
-### 修复（1.1.7 → 1.1.8 的行为修复）
-
 ### 修复
 
 - **接管来的「启动中后端」没有启动超时**：`markRunning(adopt-starting)` 把状态设成 `running`、
@@ -47,8 +45,6 @@
 - **`/queue` unknown 时的探活太短**：上一版用 `probe(1_000)` 判断「后端是不是真的死了」，
   高负载下 `/system_stats` 慢一点就会被误判成死、进而在 `--stop` 到点时真的杀掉。改为 `probe(3_000)`。
 - 接管来的启动中后端还没就绪时，不再每轮刷一条「健康检查超时」日志（`pidState === 'starting'` 直接返回）。
-
-### 修复
 
 - Windows 上 `looksLikeComfy()` 查进程命令行用 `powershell.exe + Get-CimInstance`，
   超时从 5 秒提到 15 秒：CI 的 2 核 runner 上 powershell 冷启动 + CIM 首次加载就要 2~4 秒，
@@ -93,8 +89,6 @@
   「不是本代理启动的，跳过」。现在 `spawn` 成功立刻写 pid 文件（带 `"state":"starting"`），
   新代理读到「进程还在但还没响应」的记录时，按「启动中的托管后端」接管，就绪后照常按空闲策略结束。
 
-### 修复
-
 ### 测试
 
 - 新增四条回归：`后端队列里还有任务（正在跑）时，不卸载模型、也不结束后端`、
@@ -131,8 +125,6 @@
   而 `taskkill /F`、任务管理器结束进程、别的进程 `child.kill()` 都是强制终止，清理不会执行，
   后端会留下（下次启动自动复用），需要时按状态目录里的 `comfy-<端口>.pid` 手动结束。
 
-### 修复
-
 ### 测试
 
 - CI 矩阵从 Node 20 / 22 扩到 **20 / 22 / 24**（`ubuntu-latest` + `windows-latest`），
@@ -163,8 +155,6 @@
   30 分钟仍未结束，之后每 10 分钟打一条提示（`有 N 条主动请求已持续 X 分钟未结束…`）。
   只写日志，不改变任何销毁行为；对 `--request-timeout 0`（彻底关掉兜底）的用户尤其有用。
 
-### 修复
-
 ### 测试
 
 - 22 个用例：`test/lazy-comfy.test.mjs`（配置解析）、`test/proxy-loopback.test.mjs`（转发回归 8 条）、
@@ -186,8 +176,6 @@
 - `ensureBackend()` 返回后补 `if (res.destroyed || res.writableEnded) return;`，
   避免兜底已经断开客户端、handler 还继续把 `/prompt` 转发给 ComfyUI。
 - 启动日志说明兜底是否启用（`--request-timeout 0` 时会明确提示风险）。
-
-### 修复
 
 ### 测试
 
@@ -213,8 +201,6 @@
   `stopping` 时只返回占位，不会把刚停下的后端又拉起来。
 - 删除未使用的 `test/fake-hang.mjs`。
 - `start.bat` 不再硬编码 `D:\ComfyUI`：留空就让代理自动查找，可用环境变量 `COMFY_ROOT` 覆盖。
-
-### 修复
 
 ### 测试
 
@@ -264,8 +250,6 @@
 - **版本号一致性校验**：启动时比对代码内 `VERSION` 与 `package.json` 的 `version`，
   不一致时提示同步（不做成强依赖，单文件部署仍然可用）。
 
-### 修复
-
 ### 测试
 
 - 新增 `test/proxy-loopback.test.mjs`：纯 Node 起假后端，**Windows 上也会真跑**
@@ -301,8 +285,6 @@
 - **`taskkill` 只试一次**：Windows 上首次 `/T /F` 偶发失败（子进程刚创建、句柄未释放）
   就判定为杀不掉。现在重试一次，两次之间仍等待进程退出。
 - `--upstream-timeout` 超时后不再重复触发 `error` 分支的 `502` 响应（已发头时不重复写响应）。
-
-### 修复
 
 ### 测试
 
