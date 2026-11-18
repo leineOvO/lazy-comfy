@@ -154,12 +154,10 @@ ComfyUI 冷启动通常要 40–60 秒。很多人为了省显存，用完就关
 
 只有「主动请求」才算有人在干活：
 
-| 类型 | 例子 | 记活跃 | 唤醒后端 |
-| --- | --- | :---: | :---: |
-| 被动探测 | `GET /prompt`、`GET /queue`、`GET /history/*`、`GET /models`、`GET /embeddings` | ✗ | ✗ |
-| 主动请求 | `POST /prompt`、`POST /interrupt`、`GET /view`、`GET /`（加载页面） | ✓ | ✓ |
-| 健康检查 | `GET /system_stats` | ✗（1.1.3 起） | ✓（仅 stopped，10 分钟冷却） |
-| WebSocket | `/ws` 升级 | ✗ | ✗（后端睡着时直接断开） |
+- **被动探测**：`GET /prompt`、`GET /queue`、`GET /history/*`、`GET /models`、`GET /embeddings` ——不记活跃，也不唤醒。
+- **主动请求**：`POST /prompt`、`POST /interrupt`、`GET /view`、`GET /`（加载页面）——记活跃，会唤醒。
+- **健康检查**：`GET /system_stats` ——不记活跃（1.1.3 起），仅在 `stopped` 时唤醒，且有 10 分钟冷却。
+- **WebSocket**：`/ws` 升级——不记活跃，不唤醒（后端睡着时直接断开）。
 
 新版 ComfyUI 前端会给请求加 `/api` 前缀，代理会先去掉前缀再分类，两套路由都兼容。
 后端休眠时 ws 升级会直接断开，浏览器控制台会出现重连失败，这是预期行为，不会唤醒后端。
@@ -408,26 +406,26 @@ lazy-comfy 的出发点就是把这两件事拆开：**「网页在呼吸」不�
 
 命令行参数优先于环境变量。
 
-| 命令行 | 环境变量 | 默认值 | 说明 |
-| --- | --- | --- | --- |
-| `-p, --port` | `LAZY_PORT` | `8189` | 代理监听端口 |
-| `-b, --backend` | `COMFY_PORT` | `8188` | ComfyUI 后端端口 |
-| `-r, --root` | `COMFY_ROOT` | 自动查找 | ComfyUI 根目录（含 `main.py`） |
-| `--python` | `COMFY_PYTHON` / `LAZY_PYTHON` | 自动查找 | Python 解释器 |
-| `--idle` | `LAZY_IDLE_MIN` | `10` | 空闲多少分钟卸载模型，`0` = 关闭 |
-| `--stop` | `LAZY_STOP_MIN` | `30` | 空闲多少分钟结束后端，`0` = 关闭 |
-| `--log` | `LAZY_LOG` | `<state-dir>/lazy.log` | 日志文件 |
-| `--state-dir` | `LAZY_STATE_DIR` | `~/.lazy-comfy` | PID / 日志目录 |
-| `--start-timeout` | `LAZY_START_TIMEOUT_MS` | `180000` | 冷启动超时（毫秒），超时会杀掉重试 |
-| `--wait-timeout` | `LAZY_WAIT_TIMEOUT_MS` | 启动超时 + 10s | 单个请求等待后端就绪的上限 |
-| `--check-interval` | `LAZY_CHECK_MS` | `30000` | 空闲检查间隔（毫秒） |
-| `--upstream-timeout` | `LAZY_UPSTREAM_TIMEOUT_MS` | `600000` | 单个请求的静默超时（无数据往来），`0` = 完全关闭；挂死请求可能让空闲策略停摆，不建议关闭（0-86400000） |
-| `--request-timeout` | `LAZY_REQUEST_TIMEOUT_MS` | `7200000` | 单请求无数据往来的兜底，**只在 `--upstream-timeout 0` 时生效**；超时只断开这一条请求（0-86400000） |
-| `--hibernate-retry` | `LAZY_HIBERNATE_RETRY` | `3` | `/free` 连续失败多少次后放弃休眠（1-20） |
-| `--probe-fail-limit` | `LAZY_PROBE_FAIL_LIMIT` | `0` | 探活连续失败多少次后强制重启，`0` = 关闭（0-20） |
-| `--passive-extra` | `LAZY_PASSIVE_EXTRA` | 空 | 追加被动路由正则，CLI 可重复，env 用逗号分隔（正则里别用逗号） |
-| `--stop-on-exit` | `LAZY_STOP_ON_EXIT=1` | 关闭 | 代理退出时同时结束后端 |
-| `--debug` | `LAZY_DEBUG=1` | 关闭 | 打印每个请求的主动/被动分类 |
+| 命令行 | 默认值 | 说明 |
+| --- | --- | --- |
+| `-p, --port` | `8189` | 代理监听端口（env `LAZY_PORT`） |
+| `-b, --backend` | `8188` | ComfyUI 后端端口（env `COMFY_PORT`） |
+| `-r, --root` | 自动查找 | ComfyUI 根目录（含 `main.py`，env `COMFY_ROOT`） |
+| `--python` | 自动查找 | Python 解释器（env `COMFY_PYTHON` / `LAZY_PYTHON`） |
+| `--idle` | `10` | 空闲多少分钟卸载模型，`0` = 关闭（env `LAZY_IDLE_MIN`） |
+| `--stop` | `30` | 空闲多少分钟结束后端，`0` = 关闭（env `LAZY_STOP_MIN`） |
+| `--log` | `<state-dir>/lazy.log` | 日志文件（env `LAZY_LOG`） |
+| `--state-dir` | `~/.lazy-comfy` | PID / 日志目录（env `LAZY_STATE_DIR`） |
+| `--start-timeout` | `180000` | 冷启动超时（毫秒），超时会杀掉重试（env `LAZY_START_TIMEOUT_MS`） |
+| `--wait-timeout` | 启动超时 + 10s | 单个请求等待后端就绪的上限（env `LAZY_WAIT_TIMEOUT_MS`） |
+| `--check-interval` | `30000` | 空闲检查间隔（毫秒，env `LAZY_CHECK_MS`） |
+| `--upstream-timeout` | `600000` | 单条转发的静默超时，`0` = 关闭（env `LAZY_UPSTREAM_TIMEOUT_MS`） |
+| `--request-timeout` | `7200000` | 单请求无数据兜底，只在 `--upstream-timeout 0` 时生效（env `LAZY_REQUEST_TIMEOUT_MS`） |
+| `--hibernate-retry` | `3` | `/free` 连续失败多少次后放弃休眠（env `LAZY_HIBERNATE_RETRY`） |
+| `--probe-fail-limit` | `0` | 探活连续失败多少次后强制重启，`0` = 关闭（env `LAZY_PROBE_FAIL_LIMIT`） |
+| `--passive-extra` | 空 | 追加被动路由正则，CLI 可重复，env 用逗号分隔（env `LAZY_PASSIVE_EXTRA`） |
+| `--stop-on-exit` | 关闭 | 代理退出时同时结束后端（env `LAZY_STOP_ON_EXIT=1`） |
+| `--debug` | 关闭 | 打印每个请求的主动/被动分类（env `LAZY_DEBUG=1`） |
 
 `--idle` 和 `--stop` 支持小数，方便调试（例如 `0.05` 表示 3 秒）。
 
@@ -441,12 +439,18 @@ lazy-comfy 的出发点就是把这两件事拆开：**「网页在呼吸」不�
 
 名字很像，管的事情完全不同；用错会「明明调了却没效果」：
 
-| 参数 | 管哪一段 | 默认 | 触发后发生什么 | 什么时候才需要改 |
-| --- | --- | --- | --- | --- |
-| `--start-timeout` | **冷启动后端**（从 spawn 到 `/system_stats` 正常） | 180000（3 分钟） | 判为启动失败，结束这个半启动的进程，后续请求走「后端不可用」分支 | 首次加载大模型/慢盘明显超过 3 分钟 |
-| `--wait-timeout` | **单个请求等后端就绪**（请求已进来，后端还在起） | 启动超时 + 10s | 这条请求回 `503`，但后台继续启动（不是失败） | 想要「快速失败」而不是干等，可设得比启动超时小 |
-| `--upstream-timeout` | **单条转发多久没有数据往来**（静默超时，边聊边传的慢请求不算） | 600000（10 分钟） | 断开本机这一侧、回 `504`（未发头时）；ComfyUI 里的任务不会被取消 | 有真正超过 10 分钟不吐数据的长任务（大 upscale、视频） |
-| `--request-timeout` | 单条请求的**无数据兜底**：从请求进来到结束都计时，任何数据往来都会重置；只在 `--upstream-timeout 0` 时生效 | 7200000（2 小时） | 只断开这一条请求（未发头 `504` / 已发头 `res.destroy()`），不动别的连接 | 关了上游静默超时之后，仍想有个「绝对不会永久挂住」的保险 |
+- **`--start-timeout`**（默认 180000 = 3 分钟）——管**冷启动后端**：从 spawn 到 `/system_stats` 正常。
+  超时后判为启动失败，结束这个半启动的进程，后续请求走「后端不可用」分支。
+  什么时候改：首次加载大模型 / 慢盘明显超过 3 分钟。
+- **`--wait-timeout`**（默认 启动超时 + 10s）——管**单个请求等后端就绪**：请求已进来、后端还在起。
+  超时后这条请求回 `503`，但后台继续启动（不是失败）。
+  什么时候改：想要「快速失败」而不是干等，可设得比启动超时小。
+- **`--upstream-timeout`**（默认 600000 = 10 分钟）——管**单条转发多久没有数据往来**（静默超时，边聊边传的慢请求不算）。
+  超时后断开本机这一侧、回 `504`（未发头时）；ComfyUI 里的任务不会被取消。
+  什么时候改：有真正超过 10 分钟不吐数据的长任务（大 upscale、视频）。
+- **`--request-timeout`**（默认 7200000 = 2 小时）——单条请求的**无数据兜底**：从请求进来到结束都计时，任何数据往来都会重置；**只在 `--upstream-timeout 0` 时生效**。
+  超时后只断开这一条请求（未发头 `504` / 已发头 `res.destroy()`），不动别的连接。
+  什么时候改：关了上游静默超时之后，仍想有个「绝对不会永久挂住」的保险。
 
 两个容易搞混的点：
 
@@ -462,6 +466,7 @@ lazy-comfy 的出发点就是把这两件事拆开：**「网页在呼吸」不�
   就会写一次（`"state":"starting"`），所以冷启动期间代理被杀，下次启动仍然知道这个后端归自己管。
 
 ## 常见问题
+
 **不出图很久了，显存还占着？**
 先看日志有没有「队列里还有任务在跑」。队列非空时代理会不断重置空闲计时（避免打断正在跑的批次），
 所以最后一张出完还要再等一个完整窗口才卸载或结束。想立刻释放：执行 `node lazy-comfy.mjs --stop`，
