@@ -1,5 +1,10 @@
 # lazy-comfy
 
+![Version](https://img.shields.io/badge/version-1.1.9-blue)
+![License](https://img.shields.io/badge/license-MIT-green)
+![Node](https://img.shields.io/badge/node-%3E%3D20.0.0-brightgreen)
+![CI](https://github.com/leineOvO/lazy-comfy/actions/workflows/test.yml/badge.svg)
+
 > 让 ComfyUI 按需启动、空闲休眠、自动省显存。
 
 一个零依赖的本地反向代理：监听 `127.0.0.1:8189`，把请求转发给内部 `8188` 的 ComfyUI。
@@ -295,7 +300,7 @@ ComfyUI 冷启动要 40–60 秒，但很多客户端对 `GET /system_stats` 只
   以及每 300ms 一次的 WebSocket 重连，都不会把刚睡下的后端吵醒。
 - **健康检查占位**：冷启动期间 `GET /system_stats` 先返回 200 占位数据，
   避免只等 5 秒的客户端直接报错；真正干活的请求会排队等后端就绪。
-- **跨平台**：Windows（含 ComfyUI 便携包 `python_embeded`）、Linux、macOS。
+- **跨平台**：Windows（含 ComfyUI 便携包 `python_embeded`）、Linux、macOS（macOS 的验证情况见「已知限制」）。
 - **零依赖**：只需要 Node.js，不用 `npm install`。
 - **安全默认**：只监听 `127.0.0.1`，不对外网开放。
 - **可运维**：PID 文件、日志轮转、`--stop-on-exit`、可配置超时和检查间隔。
@@ -309,7 +314,7 @@ ComfyUI 冷启动要 40–60 秒，但很多客户端对 `GET /system_stats` 只
 3. **冷启动时前端不报错**：`GET /system_stats` 先返回 200 占位（`x-lazy-state: starting`），只等 5 秒就超时的客户端也不会弹红字；真正干活的请求才排队等后端。
 4. **后端偷死能自己救回来**：看门狗发现进程没了，5 秒后自动重启——不需要你重启代理。
 5. **不会误杀你自己开的 ComfyUI**：代理检查 PID 与命令行，发现是外部启动的，空闲时只 `/free` 卸载模型，**绝不动进程**。
-6. **冷启动被打断也不丢托管**：`spawn` 成功就立刻写 PID 文件（状态 `starting`），下次启动能认出「上次没启动完的那个」并接管；接管来的如果没有启动超时兜底，会一直卡在 `starting`——1.1.8 补了 deadline。
+6. **冷启动被打断也不丢托管**：`spawn` 成功就立刻写 PID 文件（状态 `starting`），下次启动能认出「上次没启动完的那个」并接管；接管来的如果没有启动超时兜底，会一直卡在 `starting` 状态，所以 1.1.8 补了 deadline。
 7. **杀不掉时不假装成功**：`taskkill` 失败会重试、指数退避、日志写清 pid 和次数，而不是打完一行「已结束」就当成功。
 8. **Windows 上真的能用**：便携包 `python_embeded`、中文与空格路径、进程树结束（`taskkill /T`）、`--stop-on-exit` 退出清理都验过。
 9. **零依赖单文件**：只有一个 `.mjs`，不用 `npm install`，不改 ComfyUI 源码、不装自定义节点、工作流原样可用。
@@ -464,8 +469,9 @@ lazy-comfy 的出发点就是把这两件事拆开：**「网页在呼吸」不�
 
 **不出图很久了，显存还占着？**
 先看日志有没有「队列里还有任务在跑」。队列非空时代理会不断重置空闲计时（避免打断正在跑的批次），
-所以最后一张出完还要再等一个完整窗口才卸载或结束。想立刻释放：执行 `node lazy-comfy.mjs --stop`，
-或直接结束后端进程（下次请求会自动拉起）。
+所以最后一张出完还要再等一个完整窗口才卸载或结束。想立刻释放：按状态目录里的
+`comfy-<端口>.pid` 结束后端进程（代理会当作后端消失，下次请求自动拉起），
+或者干脆把代理和后端一起停掉。
 
 **第一次请求还是要等 50 秒？**
 只有第一次冷启动需要。之后空闲 10 分钟是卸载模型（几秒恢复），30 分钟才是杀进程。
